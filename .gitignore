@@ -1,0 +1,6 @@
+.vscode
+.idea
+*.log
+*.tmp
+*.exe
+wait-for-it
