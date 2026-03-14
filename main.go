@@ -35,12 +35,12 @@ func main() {
 		os.Exit(130)
 	}()
 
-	success := waitFor(cfg.host, cfg.port, cfg.dnsServer, cfg.timeout)
+	exitCode := waitFor(cfg.host, cfg.port, cfg.dnsServer, cfg.timeout)
 
 	if len(cfg.cli) > 0 {
-		if !success && cfg.strict {
+		if exitCode != 0 && cfg.strict {
 			echoerr("wait-for-it: strict mode, refusing to execute subprocess")
-			os.Exit(1)
+			os.Exit(exitCode)
 		}
 		cmd := exec.Command(cfg.cli[0], cfg.cli[1:]...)
 		cmd.Stdout = os.Stdout
@@ -55,8 +55,5 @@ func main() {
 		os.Exit(0)
 	}
 
-	if success {
-		os.Exit(0)
-	}
-	os.Exit(1)
+	os.Exit(exitCode)
 }

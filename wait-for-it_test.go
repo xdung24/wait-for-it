@@ -112,8 +112,8 @@ func TestWaitFor_Success(t *testing.T) {
 
 	port := startTCPServer(t)
 	result := waitFor("127.0.0.1", port, "", 5)
-	if !result {
-		t.Error("expected waitFor to return true when server is available")
+	if result != 0 {
+		t.Errorf("expected waitFor to return 0 when server is available, got %d", result)
 	}
 }
 
@@ -123,8 +123,23 @@ func TestWaitFor_Timeout(t *testing.T) {
 
 	// Use a port that nothing is listening on.
 	result := waitFor("127.0.0.1", "1", "", 2)
-	if result {
-		t.Error("expected waitFor to return false on timeout")
+	if result != 1 {
+		t.Errorf("expected waitFor to return 1 on timeout, got %d", result)
+	}
+}
+
+func TestWaitFor_DNSFailure(t *testing.T) {
+	quiet = false
+
+	out := captureStderr(func() {
+		result := waitFor("this.domain.does.not.exist.invalid", "80", "", 5)
+		if result != 2 {
+			t.Errorf("expected waitFor to return 2 on DNS failure, got %d", result)
+		}
+	})
+
+	if !bytes.Contains([]byte(out), []byte("failed to resolve host")) {
+		t.Errorf("expected DNS failure message in stderr, got %q", out)
 	}
 }
 

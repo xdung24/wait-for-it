@@ -77,5 +77,6 @@ GOOS=darwin  GOARCH=arm64               go build -o wait-for-it-darwin  wait-for
 | Code | Meaning |
 |---|---|
 | `0` | Port became available (and trailing command succeeded, if given) |
-| `1` | Missing required arguments or unknown argument |
-| non-zero | Timeout elapsed (no trailing command), or exit code of the trailing command |
+| `1` | Timeout elapsed before the port became available, or missing/unknown argument |
+| `2` | DNS resolution failed — the hostname could not be resolved to an IP address |
+| non-zero | Exit code of the trailing command, if one was provided |

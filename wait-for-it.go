@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net"
 	"os"
@@ -36,7 +37,7 @@ func buildDialer(dnsServer string) *net.Dialer {
 	return &net.Dialer{Timeout: time.Second, Resolver: resolver}
 }
 
-func waitFor(host, port, dnsServer string, timeout int) bool {
+func waitFor(host, port, dnsServer string, timeout int) int {
 	address := net.JoinHostPort(host, port)
 	if timeout > 0 {
 		echoerr("wait-for-it: waiting %d seconds for %s", timeout, address)
@@ -56,12 +57,18 @@ func waitFor(host, port, dnsServer string, timeout int) bool {
 			conn.Close()
 			elapsed := int(time.Since(start).Seconds())
 			echoerr("wait-for-it: %s is available after %d seconds", address, elapsed)
-			return true
+			return 0
+		}
+
+		var dnsErr *net.DNSError
+		if errors.As(err, &dnsErr) {
+			echoerr("wait-for-it: failed to resolve host %q: %s", host, dnsErr.Err)
+			return 2
 		}
 
 		if timeout > 0 && time.Since(start) >= time.Duration(timeout)*time.Second {
 			echoerr("wait-for-it: timeout occurred after waiting %d seconds for %s", timeout, address)
-			return false
+			return 1
 		}
 
 		time.Sleep(time.Second)
